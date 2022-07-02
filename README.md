@@ -35,17 +35,18 @@ System:
 * Debian Bullseye x64 (11)
 * Custom kernel with Kernel TLS module (CONFIG_TLS=y) - https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls
 * tmpfs for cache - add "tmpfs /var/cache/nginx/ram_cache/ tmpfs defaults,size=1024M 0 0" to /etc/fstab
-* gcc 11.2.0
+* gcc 12.1.0
 
 ```
 Using built-in specs.
 COLLECT_GCC=gcc
-COLLECT_LTO_WRAPPER=/usr/local/gcc-11.2.0/libexec/gcc/x86_64-linux-gnu/11.2.0/lto-wrapper
+COLLECT_LTO_WRAPPER=/usr/local/gcc-12.1.0/libexec/gcc/x86_64-linux-gnu/12.1.0/lto-wrapper
 Target: x86_64-linux-gnu
-Configured with: ../gcc-11.2.0/configure -v --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --prefix=/usr/local/gcc-11.2.0 --with-system-zlib --enable-checking=release --enable-languages=c,c++,d,fortran,go,objc,obj-c++ --disable-multilib --program-suffix=-11.2
+Configured with: ../gcc-12.1.0/configure -v --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --prefix=/usr/local/gcc-12.1.0 --with-system-zlib --enable-checking=release --enable-languages=c,c++ --disable-multilib --program-suffix=-12.1
 Thread model: posix
 Supported LTO compression algorithms: zlib
-gcc version 11.2.0 (GCC)
+gcc version 12.1.0 (GCC)
+
 ```
 
 Cloudflare:
