@@ -33,7 +33,7 @@ Plex:
 
 System: 
 * Debian Bullseye x64 (11)
-* Custom kernel with Kernel TLS module (CONFIG_TLS=y) - https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls
+* Kernel with TLS module enabled (CONFIG_TLS=y) - https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls
 * tmpfs for cache - add "tmpfs /var/cache/nginx/ram_cache/ tmpfs defaults,size=1024M 0 0" to /etc/fstab
 * gcc 12.1.0
 
