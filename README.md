@@ -14,7 +14,7 @@ configure arguments: --build=07022022-090554-UTC-[debian_nginx-quic+quictls] --p
 ```
 
 * nginx-quic 1.23 - https://hg.nginx.org/nginx-quic
-* openssl-3.0.3+quic - quictls: https://github.com/quictls/openssl/tree/openssl-3.0.3+quic
+* openssl-3.0.3+quic - quictls: https://github.com/quictls/openssl
 * Kernel TLS - https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls
 * QUIC transport protocol and HTTP/3 - https://www.nginx.com/blog/introducing-technology-preview-nginx-support-for-quic-http-3/
 * Add HTTP2 HPACK Encoding Support - https://blog.cloudflare.com/hpack-the-silent-killer-feature-of-http-2/
