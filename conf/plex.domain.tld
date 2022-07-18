@@ -95,6 +95,10 @@ server
   ## HTTP3/QUIC
   add_header Alt-Svc 'h3=":443"; ma=86400'; ## Advertise that QUIC is available
   add_header X-Early-Data $tls1_3_early_data; ## 0-RTT
+  
+  ## Generated via: https://forums.plex.tv/t/guide-howto-reverse-proxy-header-hardening-csp-security-headers/676189
+  set $script_hashes "'sha256-nJQTRKTrsNC7POCKq7aJgohAiPwBISLvR7aJylcnMeE=' 'sha256-pKO/nNgeauDINvYfxdygP3mGssdVQRpRNxaF7uPRoGM=' 'sha256-yzewNIK88H9e/nnbvcRDaRitv6LXSahLCAXIFAjaetU='";
+  set $style_hashes "'sha256-ZdHxw9eWtnxUb3mk6tBS+gIiVUPE3pGM470keHPDFlE='";
 
   ## https://github.com/GetPageSpeed/ngx_security_headers
   ## A+ certificate: https://securityheaders.com
@@ -103,8 +107,8 @@ server
   add_header Cross-Origin-Opener-Policy same-origin;
   add_header Cross-Origin-Opener-Policy-Report-Only same-origin;
   add_header Cross-Origin-Resource-Policy same-site;
-  add_header Content-Security-Policy "default-src 'none';base-uri 'self';block-all-mixed-content ;connect-src 'self' https://*.plex.direct:* wss://*.plex.direct:* https://*.plex.tv wss://*.plex.tv;font-src 'self' data:;form-action 'self';frame-ancestors 'none';frame-src 'self';img-src 'self' blob: data: https://*.plex.tv;manifest-src 'self';media-src 'self';object-src 'none';script-src 'self' 'report-sample' https://www.gstatic.com/cv/js/sender/v1/cast_sender.js;style-src 'self' 'report-sample';upgrade-insecure-requests ;worker-src 'none';" always;
-  add_header Permissions-Policy "geolocation=();midi=();notifications=();push=();sync-xhr=();microphone=();camera=();magnetometer=();gyroscope=();speaker=(self);vibrate=();fullscreen=(self);payment=();" always;
+  add_header Content-Security-Policy "prefetch-src 'self';default-src 'none';base-uri 'self';block-all-mixed-content ;connect-src 'self' https://*.plex.direct:* wss://*.plex.direct:* https://*.plex.tv https://plex.tv wss://*.plex.tv;font-src 'self' data:;form-action 'self';frame-ancestors 'none';frame-src 'self';img-src 'self' blob: data: https://*.plex.tv;manifest-src 'self';media-src 'self' blob: data:;object-src 'none';script-src 'self' 'report-sample' 'unsafe-eval' https://www.gstatic.com $script_hashes;style-src 'self' 'report-sample' 'unsafe-hashes' $style_hashes;upgrade-insecure-requests ;worker-src 'none';" always;
+  add_header Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=*, geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()" always;
   add_header X-Robots-Tag "noindex, noarchive, nosnippet";
 
   ## Restoring original visitor IPs: https://support.cloudflare.com/hc/en-us/articles/200170786-Restoring-original-visitor-IPs-logging-visitor-IP-addresses
