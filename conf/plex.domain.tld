@@ -102,12 +102,11 @@ server
 
   ## https://github.com/GetPageSpeed/ngx_security_headers
   ## https://securityheaders.com & https://csp-evaluator.withgoogle.com
-  add_header referrer-policy "same-origin" always;
-  add_header strict-transport-security "max-age=31536000; includesubdomains; preload" always;
-  add_header x-content-type-options "nosniff" always;
-  add_header x-frame-options sameorigin;
-  add_header x-xss-protection "1; mode=block" always;
-  add_header access-control-allow-origin https:/plex.domain.tld;
+  add_header Referrer-Policy "same-origin" always;
+  add_header Strict-Transport-Security "max-age=63072000; includesubdomains; preload" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options sameorigin;
+  add_header X-XSS-Protection "1; mode=block" always;
   add_header Content-Security-Policy "prefetch-src 'self';default-src 'none';base-uri 'self';block-all-mixed-content ;connect-src 'self' https://*.plex.direct:* wss://*.plex.direct:* https://*.plex.tv https://plex.tv wss://*.plex.tv;font-src 'self' data:;form-action 'self';frame-ancestors 'none';frame-src 'self';img-src 'self' blob: data: https://*.plex.tv;manifest-src 'self';media-src 'self' blob: data:;object-src 'none';require-trusted-types-for 'script';script-src 'unsafe-inline' 'report-sample' $script_hashes;style-src 'self' 'report-sample' $style_hashes;upgrade-insecure-requests ;worker-src 'none';" always;
   add_header Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=*, geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()" always;
   add_header Cross-Origin-Embedder-Policy require-corp;
