@@ -28,6 +28,7 @@ configure arguments: --build=07022022-090554-UTC-[debian_nginx-quic+quictls] --p
  
 Plex:
 * Remote Access - Disable
+* Network - Relay - Disable
 * Network - Custom server access URLs = `https://<your-domain>:443,http://<your-domain>:80`
 * Network - Secure connections = Preferred
 
