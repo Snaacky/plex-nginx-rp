@@ -13,7 +13,7 @@ VERSION_LIBATOMIC=7.6.12
 VERSION_NGINX=1.23
 VERSION_PCRE=pcre-8.45
 VERSION_SECURITY_HEADERS=0.0.11
-VERSION_OPENSSL=openssl-3.0.3+quic
+VERSION_OPENSSL=openssl-3.0.5+quic
 
 ## Set URLs to the source directories
 SOURCE_JEMALLOC=https://github.com/jemalloc/jemalloc
