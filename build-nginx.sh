@@ -10,7 +10,7 @@ set -e
 
 ## Set names of latest versions of each package
 VERSION_LIBATOMIC=7.6.12
-VERSION_NGINX=1.23
+VERSION_NGINX=1.23.1
 VERSION_PCRE=pcre-8.45
 VERSION_SECURITY_HEADERS=0.0.11
 VERSION_OPENSSL=openssl-3.0.5+quic
@@ -27,7 +27,7 @@ SOURCE_ZLIB_CLOUDFLARE=https://github.com/cloudflare/zlib
 ## Set where OpenSSL and NGINX will be built
 SPATH=$(pwd)
 BPATH=$SPATH/build
-TIME=$(date +%m%d%Y-%H%M%S-%Z)
+TIME=$(date +%d%m%Y-%H%M%S-%Z)
 
 ## Clean screen before launching
 clear
