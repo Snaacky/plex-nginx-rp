@@ -10,7 +10,7 @@ set -e
 
 ## Set names of latest versions of each package
 VERSION_LIBATOMIC=7.6.12
-VERSION_NGINX=1.23.2
+VERSION_NGINX=1.23.3
 VERSION_PCRE=pcre-8.45
 VERSION_SECURITY_HEADERS=0.0.11
 VERSION_OPENSSL=openssl-3.0.7+quic
