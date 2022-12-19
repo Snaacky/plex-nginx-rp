@@ -5,8 +5,8 @@ ssl_session_cache shared:MozSSL:10m;
 ssl_session_timeout 1d;
 ssl_session_tickets off;
 
-## Cache for plex_backend/photo (purges files older than 24h or >950M)
-proxy_cache_path /var/cache/nginx/ramcache levels=1:2 keys_zone=my_zone:10m inactive=24h max_size=950M min_free=50M;
+## Cache for plex_backend/photo (purges files older than 7d or >950M)
+proxy_cache_path /var/cache/nginx/ramcache levels=1:2 keys_zone=plex_photos:10m inactive=7d max_size=950M min_free=50M;
 
 ## Upstream to PMS
 upstream plex_backend
@@ -192,14 +192,20 @@ server
     proxy_pass http://plex_backend;
   }
 
-  ## /var/cache/nginx/ram_cache (caches after 1 use; valid for 24h)
-  location /photo
-  {
-    proxy_pass http://plex_backend/photo;
+  location /photo/:/transcode {
+      if ($args ~ "(.*)X-Plex-Token%.+$" ) {
+        set $new_args  $1;
+      }
+    proxy_ssl_verify off;
+    http2_push_preload on;
+    proxy_read_timeout 86400;
+    proxy_pass http://plex_backend;
     proxy_buffering on;
     proxy_cache_min_uses 1;
-    proxy_cache my_zone;
-    proxy_cache_key "$host$request_uri$http_authorization";
+    proxy_cache plex_photos;
+    proxy_cache_key "$host$request_uri$is_args$new_args";
+    proxy_cache_revalidate on;
+    proxy_cache_lock on;
     proxy_cache_valid 200 24h;
     add_header X-Cache-Status $upstream_cache_status;
     sendfile on;
