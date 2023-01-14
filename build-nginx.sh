@@ -22,7 +22,7 @@ SOURCE_NGINX=https://hg.nginx.org/nginx-quic
 SOURCE_OPENSSL=https://github.com/quictls/openssl
 SOURCE_PCRE=https://ftp.exim.org/pub/pcre/
 SOURCE_SECURITY_HEADERS=https://github.com/GetPageSpeed/ngx_security_headers/archive/
-SOURCE_ZLIB_CLOUDFLARE=https://github.com/cloudflare/zlib
+SOURCE_ZLIB_CLOUDFLARE=https://github.com/0x5f3/zlib
 
 ## Set where OpenSSL and NGINX will be built
 SPATH=$(pwd)
