@@ -36,7 +36,8 @@ System:
 * Debian Bullseye x64 (11)
 * Kernel with TLS module enabled (CONFIG_TLS=y) - https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls
 * tmpfs for cache - add "tmpfs /var/cache/nginx/ram_cache/ tmpfs defaults,size=1024M 0 0" to /etc/fstab
-* gcc 12.2.0
+* gcc (12.2.0)
+* mold linker (1.9.0) - https://github.com/rui314/mold
 
 ```
 Using built-in specs.
@@ -47,6 +48,12 @@ Configured with: /usr/local/src/build/build/../gcc-12.2.0/configure -v --build=x
 Thread model: posix
 Supported LTO compression algorithms: zlib
 gcc version 12.2.0 (GCC)
+```
+
+```
+String dump of section '.comment':
+  [     0]  mold 1.9.0 (ad0b6d0ac6a9b269935c3fbf4dae2815395431a4; compatible with GNU ld)
+  [    4e]  GCC: (GNU) 12.2.0
 ```
 
 Cloudflare:
