@@ -145,14 +145,14 @@ patch -p1 < "$SPATH/patches/https2_hpack+dynamic_tls.patch"
   --build="$TIME-[debian_nginx-quic+quictls]" \
   --prefix=/etc/nginx \
   --with-cpu-opt=generic \
-  --with-cc-opt='-I/usr/local/include -pipe -m64 -march=native -DTCP_FASTOPEN=23 -falign-functions=32 -O4 -Wno-error=strict-aliasing -Wno-vla-parameter -fstack-protector-strong -fuse-ld=mold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-error=pointer-sign -Wimplicit-fallthrough=0 -fcode-hoisting -Wp,-D_FORTIFY_SOURCE=2 -Wno-deprecated-declarations' \
+  --with-cc-opt='-I/usr/local/include -pipe -m64 -march=native -DTCP_FASTOPEN=23 -falign-functions=32 -O3 -Wno-error=strict-aliasing -Wno-vla-parameter -fstack-protector-strong -fuse-ld=mold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-error=pointer-sign -Wimplicit-fallthrough=0 -fcode-hoisting -Wp,-D_FORTIFY_SOURCE=2 -Wno-deprecated-declarations' \
   --with-ld-opt='-Wl,-E -L/usr/local/lib -ljemalloc -Wl,-z,relro -Wl,-rpath,/usr/local/lib -fuse-ld=mold' \
   --with-openssl="../$VERSION_OPENSSL" \
-  --with-openssl-opt='-pipe -O4 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wl,-flto=16 no-weak-ssl-ciphers no-ssl3 no-idea no-err no-srp no-psk no-nextprotoneg enable-ktls enable-zlib enable-ec_nistp_64_gcc_128' \
+  --with-openssl-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wl,-flto=16 no-weak-ssl-ciphers no-ssl3 no-idea no-err no-srp no-psk no-nextprotoneg enable-ktls enable-zlib enable-ec_nistp_64_gcc_128' \
   --with-pcre="../$VERSION_PCRE" \
-  --with-pcre-opt='-pipe -O4 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
+  --with-pcre-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
   --with-zlib="../zlib-cloudflare" \
-  --with-zlib-opt='-pipe -O4 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
+  --with-zlib-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
   --conf-path=/etc/nginx/nginx.conf \
   --error-log-path=/var/log/nginx/error.log \
   --http-log-path=/var/log/nginx/access.log \
