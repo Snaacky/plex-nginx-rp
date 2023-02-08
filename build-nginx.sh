@@ -13,7 +13,7 @@ VERSION_LIBATOMIC=7.6.12
 VERSION_NGINX=1.23.4
 VERSION_PCRE=pcre-8.45
 VERSION_SECURITY_HEADERS=0.0.11
-VERSION_OPENSSL=openssl-3.0.7+quic
+VERSION_OPENSSL=openssl-3.0.8+quic
 
 ## Set URLs to the source directories
 SOURCE_JEMALLOC=https://github.com/jemalloc/jemalloc
@@ -132,7 +132,7 @@ checkinstall --install=no --pkgversion="$(cat "$BPATH/jemalloc/VERSION")" -y
 cp "$BPATH/jemalloc"/*.deb "$SPATH/packages"
 make install
 
-# Build NGINX, with various modules included/excluded; requires GCC 11.2; requires mold linker
+# Build NGINX, with various modules included/excluded; requires GCC 12.2; requires mold linker
 clear
 
 ldconfig
