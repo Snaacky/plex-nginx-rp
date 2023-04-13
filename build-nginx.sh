@@ -9,11 +9,11 @@ fi
 set -e
 
 ## Set names of latest versions of each package
-VERSION_LIBATOMIC=7.6.12
+VERSION_LIBATOMIC=7.8.0
 VERSION_NGINX=1.23.4
 VERSION_PCRE=pcre-8.45
 VERSION_SECURITY_HEADERS=0.0.11
-VERSION_OPENSSL=openssl-3.0.8+quic
+VERSION_OPENSSL=openssl-3.1.0+quic
 
 ## Set URLs to the source directories
 SOURCE_JEMALLOC=https://github.com/jemalloc/jemalloc
@@ -67,8 +67,9 @@ curl -L "${SOURCE_SECURITY_HEADERS}${VERSION_SECURITY_HEADERS}.tar.gz" -o "${BPA
 
 cd "$BPATH"
 git clone $SOURCE_JEMALLOC
-git clone $SOURCE_ZLIB_CLOUDFLARE zlib-cloudflare
-git clone --recursive $SOURCE_OPENSSL $VERSION_OPENSSL
+git clone --branch develop $SOURCE_ZLIB_CLOUDFLARE zlib-cloudflare
+git clone --recursive --branch watson/quic-with-3.1.0 $SOURCE_OPENSSL $VERSION_OPENSSL
+#git clone --recursive $SOURCE_OPENSSL $VERSION_OPENSSL
 hg clone -b quic $SOURCE_NGINX
 
 ## Expand the source files
@@ -116,6 +117,7 @@ cd "$BPATH/libatomic_ops-$VERSION_LIBATOMIC"
 autoreconf -i
 ./configure
 make -j "$(nproc)"
+ln -s "$BPATH/libatomic_ops-$VERSION_LIBATOMIC/src/.libs/libatomic_ops.a" "$BPATH/libatomic_ops-$VERSION_LIBATOMIC/src"
 make install
 
 ## make zlib-cloudflare
@@ -149,10 +151,11 @@ patch -p1 < "$SPATH/patches/https2_hpack+dynamic_tls.patch"
   --with-ld-opt='-Wl,-E -L/usr/local/lib -ljemalloc -Wl,-z,relro -Wl,-rpath,/usr/local/lib -fuse-ld=mold' \
   --with-openssl="../$VERSION_OPENSSL" \
   --with-openssl-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wl,-flto=16 no-weak-ssl-ciphers no-ssl3 no-idea no-err no-srp no-psk no-nextprotoneg enable-ktls enable-zlib enable-ec_nistp_64_gcc_128' \
-  --with-pcre="../$VERSION_PCRE" \
-  --with-pcre-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
   --with-zlib="../zlib-cloudflare" \
   --with-zlib-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
+  --with-pcre="../$VERSION_PCRE" \
+  --with-pcre-opt='-pipe -O3 -fPIC -m64 -march=native -ljemalloc -fstack-protector-strong -D_FORTIFY_SOURCE=2 -flto=16' \
+  --with-libatomic="../libatomic_ops-$VERSION_LIBATOMIC" \
   --conf-path=/etc/nginx/nginx.conf \
   --error-log-path=/var/log/nginx/error.log \
   --http-log-path=/var/log/nginx/access.log \
@@ -168,7 +171,6 @@ patch -p1 < "$SPATH/patches/https2_hpack+dynamic_tls.patch"
   --user=nginx \
   --group=nginx \
   --with-file-aio \
-  --with-libatomic \
   --with-threads \
   --with-http_realip_module \
   --with-http_ssl_module \
