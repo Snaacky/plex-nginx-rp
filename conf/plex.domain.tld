@@ -209,7 +209,7 @@ server {
 	proxy_read_timeout 86400;
 	proxy_redirect off;
 
-	## Disables compression between PMS and Nginx which improves latency. Enabling may improve throughout at the cost of slight increase in latency.
+	## Disables compression between PMS and Nginx which improves latency. Enabling may improve throughput, but at the cost of increased latency.
 	proxy_buffering off;
 	proxy_request_buffering off;
 
@@ -361,7 +361,6 @@ server {
 
 ## 0-RTT
 map $ssl_early_data $tls1_3_early_data {
-
 	"~." $ssl_early_data;
 	default "";
 }
