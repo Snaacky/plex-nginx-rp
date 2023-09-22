@@ -19,6 +19,14 @@ Build script and patches for nginx reverse proxy for use with production-grade P
 * [gcc (12.2.0)](https://gcc.gnu.org/)
 * [mold linker (1.11.0)](https://github.com/rui314/mold)
 
+## Build
+```
+$ git clone https://github.com/Snaacky/plex-nginx-rp
+$ cd plex-nginx-rp
+$ chmod +x build-nginx.sh
+$ sudo ./build-nginx.sh
+```
+
 ## Plex Configuration
 * Remote Access - Disable
 * Network - Relay - Disable
