@@ -3,9 +3,9 @@
 Build script and patches for nginx reverse proxy for use with production-grade Plex CDNs.
 
 ## Features
-* [nginx-quic 1.23.4](https://hg.nginx.org/nginx-quic)
-* [openssl-3.1.0+quic - quictls](https://github.com/quictls/openssl)
-* [Kernel TLS](https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls)
+* [nginx-quic (1.23.4)](https://hg.nginx.org/nginx-quic)
+* [OpenSSL-quic (3.1.0)](https://github.com/quictls/openssl)
+* [kTLS support](https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls)
 * [QUIC transport protocol and HTTP/3](https://www.nginx.com/blog/introducing-technology-preview-nginx-support-for-quic-http-3/)
 * [HTTP2 HPACK encoding support](https://blog.cloudflare.com/hpack-the-silent-killer-feature-of-http-2/)
 * [Dynamic TLS Record support](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency/)
