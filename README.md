@@ -2,7 +2,6 @@
 
 Build script and patches for nginx reverse proxy for use with production-grade Plex CDNs.
 
-
 ## Features
 * [nginx-quic (1.23.4)](https://hg.nginx.org/nginx-quic)
 * [OpenSSL-quic (3.1.0)](https://github.com/quictls/openssl)
@@ -12,7 +11,6 @@ Build script and patches for nginx reverse proxy for use with production-grade P
 * [Dynamic TLS Record support](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency/)
 * [ngx_security_headers](https://github.com/GetPageSpeed/ngx_security_headers)
 * [Cloudflare zlib](https://github.com/cloudflare/zlib)
-* Prevents public access to PMS built-in web interface
 * [tmpfs](https://en.wikipedia.org/wiki/Tmpfs) cache for Plex images & metadata
 
 ## Requirements
