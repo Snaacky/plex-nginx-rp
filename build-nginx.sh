@@ -95,17 +95,17 @@ fi
 
 ## We add sites-* folders as some use them. /etc/nginx/conf.d/ is the vhost folder by defaultnginx
 if [[ ! -d /etc/nginx/sites-available ]]; then
-	mkdir -p /etc/nginx/sites-available
-	cp "$SPATH/conf/plex.domain.tld" "/etc/nginx/sites-available/plex.domain.tld"
+  mkdir -p /etc/nginx/sites-available
+  cp "$SPATH/conf/plex.domain.tld" "/etc/nginx/sites-available/plex.domain.tld"
 fi
 if [[ ! -d /etc/nginx/sites-enabled ]]; then
-	mkdir -p /etc/nginx/sites-enabled
+  mkdir -p /etc/nginx/sites-enabled
 fi
 
 if [[ ! -e /etc/nginx/nginx.conf ]]; then
-	mkdir -p /etc/nginx
-	cd /etc/nginx || exit 1
-	cp "$SPATH/conf/nginx.conf" "/etc/nginx/nginx.conf"
+  mkdir -p /etc/nginx
+  cd /etc/nginx || exit 1
+  cp "$SPATH/conf/nginx.conf" "/etc/nginx/nginx.conf"
 fi
 
 ## Add NGINX group and user if they do not already exist
@@ -143,8 +143,8 @@ cd "$BPATH/nginx-quic"
 
 patch -p1 < "$SPATH/patches/https2_hpack+dynamic_tls.patch"
 
+# You may need to adjust the --with and --without for your specific use case.
 ./auto/configure \
-  --build="$TIME-[debian_nginx-quic+quictls]" \
   --prefix=/etc/nginx \
   --with-cpu-opt=generic \
   --with-cc-opt='-I/usr/local/include -pipe -m64 -march=native -DTCP_FASTOPEN=23 -falign-functions=32 -O3 -Wno-error=strict-aliasing -Wno-vla-parameter -fstack-protector-strong -fuse-ld=mold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-error=pointer-sign -Wimplicit-fallthrough=0 -fcode-hoisting -Wp,-D_FORTIFY_SOURCE=2 -Wno-deprecated-declarations' \
@@ -178,29 +178,12 @@ patch -p1 < "$SPATH/patches/https2_hpack+dynamic_tls.patch"
   --with-http_v2_module \
   --with-http_v3_module \
   --add-module="../ngx_security_headers-$VERSION_SECURITY_HEADERS" \
-  --without-http_access_module \
-  --without-http_auth_basic_module \
-  --without-http_autoindex_module \
-  --without-http_browser_module \
-  --without-http_charset_module \
-  --without-http_empty_gif_module \
-  --without-http_fastcgi_module \
-  --without-http_geo_module \
   --without-http_grpc_module \
-  --without-http_limit_conn_module \
-  --without-http_limit_req_module \
   --without-http_memcached_module \
   --without-http_mirror_module \
-  --without-http_referer_module \
   --without-http_scgi_module \
   --without-http_split_clients_module \
   --without-http_ssi_module \
-  --without-http_upstream_hash_module \
-  --without-http_upstream_ip_hash_module \
-  --without-http_upstream_least_conn_module \
-  --without-http_upstream_random_module \
-  --without-http_upstream_zone_module \
-  --without-http_userid_module \
   --without-http_uwsgi_module \
   --without-mail_imap_module \
   --without-mail_pop3_module \

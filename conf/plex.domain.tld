@@ -98,7 +98,7 @@ server {
 	ssl_verify_client on;
 
 	## https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls/
-	ssl_protocols TLSv1.3;
+	ssl_protocols TLSv1.3 TLSv1.2;
 	ssl_conf_command Options KTLS;
 	ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384; # KTLS compatible TLSv1.3 cipher
 	ssl_conf_command Ciphersuites TLS_AES_256_GCM_SHA384; # KTLS compatible TLSv1.3 cipher
@@ -112,7 +112,7 @@ server {
 
 	## Nginx default client_max_body_size is 1MB, which breaks Camera Upload feature from the phones
 	## Increasing the limit fixes the issue. Anyhow, if 4K videos are expected to be uploaded, the size might need to be increased even more
-	client_max_body_size 256M;
+	client_max_body_size 512M;
 
 	## Compression
 	gzip on;

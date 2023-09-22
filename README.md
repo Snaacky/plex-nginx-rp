@@ -1,7 +1,7 @@
-This configuration will allow you to serve PMS via nginx behind CloudFlare
+# plex-nginx-rp
 
- * Originally based on https://github.com/toomuchio/plex-nginx-reverseproxy
- * Build script based on https://github.com/MatthewVance/nginx-build
+Build script and patches for nginx reverse proxy for use with production-grade Plex CDNs.
+
 
 ## Features
 
@@ -49,24 +49,7 @@ Supported LTO compression algorithms: zlib
 gcc version 12.2.0 (GCC)
 ```
 
-```
-String dump of section '.comment':
-  [     0]  mold 1.11.0 (cca255e6be069cdbc135c83fd16036d86b98b85e; compatible with GNU ld)
-  [    4f]  GCC: (GNU) 12.2.0
-```
-
-Cloudflare:
-* SSL: https://support.cloudflare.com/hc/en-us/categories/200276247-SSL-TLS
-
-iptables:
-* Deny port 32400 externally (Plex still pings over 32400, some clients may use 32400 by mistake despite 443 and 80 being set)
-* Note adding `allowLocalhostOnly="1"` to your Preferences.xml, will make Plex only listen on the localhost, achieving the same thing as using a firewall
-* Only allow CloudFlare IPs via iptables using ipset
-
-```
-ipset create cf hash:net
-for x in $(curl https://www.cloudflare.com/ips-v4); do ipset add cf $x; done
-iptables -A INPUT -p tcp -m tcp --dport 32400 -j DROP
-iptables -A INPUT -m set --match-set cf src -p tcp -m multiport --dports http,https -j ACCEPT
-iptables -A INPUT -m set --match-set cf src -p udp -m multiport --dports https -j ACCEPT
-```
+Credits:
+ * Originally based on https://github.com/toomuchio/plex-nginx-reverseproxy
+ * Build script based on https://github.com/MatthewVance/nginx-build
+ * Forked based on https://codeberg.org/0x0f/plex-nginx-reverseproxy-cf
