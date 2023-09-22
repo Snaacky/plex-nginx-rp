@@ -3,7 +3,6 @@
 Build script and patches for nginx reverse proxy for use with production-grade Plex CDNs.
 
 ## Features
-
 * [nginx-quic 1.23.4](https://hg.nginx.org/nginx-quic)
 * [openssl-3.1.0+quic - quictls](https://github.com/quictls/openssl)
 * [Kernel TLS](https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls)
@@ -24,10 +23,8 @@ Build script and patches for nginx reverse proxy for use with production-grade P
 ## Plex Configuration
 * Remote Access - Disable
 * Network - Relay - Disable
-* Network - Custom server access URLs = `https://<your-domain>:443,http://<your-domain>:80`
+* Network - Custom server access URLs = `https://cdn.plex.your-domain.tld:443`
 * Network - Secure connections = Preferred
-
-
 
 ## Credits:
  * Originally based on https://github.com/toomuchio/plex-nginx-reverseproxy
