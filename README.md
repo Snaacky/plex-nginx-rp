@@ -3,7 +3,7 @@
 Build script and patches for nginx reverse proxy for use with production-grade Plex CDNs.
 
 ## Features
-* [nginx-quic (1.23.4)](https://hg.nginx.org/nginx-quic)
+* [nginx (1.25.0)](https://hg.nginx.org/nginx/rev/release-1.25.0)
 * [OpenSSL-quic (3.1.0)](https://github.com/quictls/openssl)
 * [kTLS support](https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls)
 * [QUIC transport protocol and HTTP/3](https://www.nginx.com/blog/introducing-technology-preview-nginx-support-for-quic-http-3/)
@@ -14,7 +14,7 @@ Build script and patches for nginx reverse proxy for use with production-grade P
 * [tmpfs](https://en.wikipedia.org/wiki/Tmpfs) cache for Plex images & metadata
 
 ## Requirements
-* [Debian 11+](https://www.debian.org/) or [Ubuntu 20+](https://ubuntu.com/)
+* [Ubuntu 22.04+](https://ubuntu.com/)
 * [Kernel with TLS module enabled (CONFIG_TLS=y)](https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls)
 * [gcc (12.2.0)](https://gcc.gnu.org/)
 * [mold linker (1.11.0)](https://github.com/rui314/mold)
