@@ -19,7 +19,7 @@ Build script and patches for nginx reverse proxy for use with production-grade P
 * [gcc (12.2.0)](https://gcc.gnu.org/)
 * [mold linker (1.11.0)](https://github.com/rui314/mold)
 
-## Build
+## Install
 ```
 $ git clone https://github.com/Snaacky/plex-nginx-rp
 $ cd plex-nginx-rp
@@ -32,6 +32,23 @@ $ sudo ./build-nginx.sh
 * Network - Relay - Disable
 * Network - Custom server access URLs = `https://cdn.plex.your-domain.tld:443`
 * Network - Secure connections = Preferred
+
+## /etc/sysctl.conf
+Improves congestion and buffer bloat algorithms used and adjusts buffer sizes to allow for consistent 1gbps throughput.
+```
+# congestion and buffer bloat
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control=bbr
+
+# increasing the default max buffer sizes for 1gbps
+net.core.rmem_default=87380
+net.core.rmem_max=16777216
+net.ipv4.tcp_rmem=4096 87380 16777216
+net.core.wmem_default=65536
+net.core.wmem_max=16777216
+net.ipv4.tcp_wmem=4096 65536 16777216
+```
+`sysctl -p`
 
 ## Credits:
  * Originally based on https://github.com/toomuchio/plex-nginx-reverseproxy
