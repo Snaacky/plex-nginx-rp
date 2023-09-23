@@ -53,7 +53,8 @@ apt-get update && apt-get -y install \
   git \
   libtool \
   mercurial \
-  wget
+  wget \
+  zlib1g-dev
 
 # Switch default gcc over to gcc-12 so we can compile.
 # NOTE: You can easily undo this yourself if it bothers you.
