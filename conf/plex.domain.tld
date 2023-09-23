@@ -1,4 +1,4 @@
-# Must be set in the global scope see: 
+# Must be set in the global scope see:
 # https://forum.nginx.org/read.php?2,152294,152294
 # Why this is important especially with Plex as it makes a lot of requests:
 # http://vincent.bernat.im/en/blog/2011-ssl-session-reuse-rfc5077.html
@@ -14,311 +14,303 @@ proxy_cache_path /tmp/nginx-metadata levels=1:2 keys_zone=plex-metadata:10m inac
 
 # https://old.reddit.com/r/PleX/comments/12gwoio/plex_nginx_reverse_proxy_caching/
 map $args $x_plex_client_identifier {
-	"~(^|&)X-Plex-Client-Identifier=(?<temp>[^&]+)" $temp;
+        "~(^|&)X-Plex-Client-Identifier=(?<temp>[^&]+)" $temp;
 }
 
 map $args $x_plex_token {
-	"~(^|&)X-Plex-Token=(?<temp>[^&]+)" $temp;
+        "~(^|&)X-Plex-Token=(?<temp>[^&]+)" $temp;
 }
 
 map $args $content_directory_id {
-	"~(^|&)contentDirectoryID=(?<temp>[^&]+)" $temp;
+        "~(^|&)contentDirectoryID=(?<temp>[^&]+)" $temp;
 }
 
 map $args $pinned_content_directory_id {
-	"~(^|&)pinnedContentDirectoryID=(?<temp>[^&]+)" $temp;
+        "~(^|&)pinnedContentDirectoryID=(?<temp>[^&]+)" $temp;
 }
 
 map $args $include_user_state {
-	"~(^|&)includeUserState=(?<temp>[^&]+)" $temp;
+        "~(^|&)includeUserState=(?<temp>[^&]+)" $temp;
 }
 
 map $args $url {
-	"~(^|&)url=(?<temp>[^&]+)" $temp;
+        "~(^|&)url=(?<temp>[^&]+)" $temp;
 }
 
 # Upstream to PMS
+# Replace 127.0.0.1:32400 with your Plex backend server IP.
 upstream plex_backend {
-	server 127.0.0.1:32400;
-	keepalive 32;
+        server 127.0.0.1:32400;
+        keepalive 32;
 }
 
 server {
-	# SO_REUSEPORT can reduce lock contention between workers accepting new connections, and improve performance on multicore systems.
-	# TCP_DEFER_ACCEPT can help boost performance by reducing the amount of preliminary formalities that happen between the server and client.
-	listen 443 ssl http2 reuseport deferred;
-	# https://www.nginx.com/blog/introducing-technology-preview-nginx-support-for-quic-http-3/
-	listen 443 http3 reuseport;
-	server_name plex.domain.tld;
+        # SO_REUSEPORT can reduce lock contention between workers accepting new connections, and improve performance on multicore systems.
+        # TCP_DEFER_ACCEPT can help boost performance by reducing the amount of preliminary formalities that happen between the server and client.
+        listen 443 ssl http2 reuseport deferred;
+        listen 443 quic reuseport; # https://www.nginx.com/blog/introducing-technology-preview-nginx-support-for-quic-http-3/
 
-	# http://nginx.org/en/docs/http/ngx_http_v2_module.html
-	# https://quic.nginx.org/readme.html
-	http2_push_preload on;
-	http3_max_concurrent_pushes 30;
-	http3_max_concurrent_streams 256;
-	http3_push on;
-	http3_push_preload on;
-	http3_stream_buffer_size 16M;
-	quic_active_connection_id_limit 2;
-	quic_gso on;
-	quic_mtu 65527;
-	quic_retry on;
+        server_name cdn.plex.domain.tld;
 
-	keepalive_requests 50000;
-	large_client_header_buffers 4 16k;
-	proxy_buffers 32 4k;
-	proxy_headers_hash_bucket_size 128;
-	proxy_headers_hash_max_size 1024;
-	send_timeout 100m; # Some players don't reopen a socket and playback stops totally instead of resuming after an extended pause (e.g. Chrome)
+        http2_push_preload on;
+        http3 on;
+        http3_max_concurrent_streams 256;
+        http3_stream_buffer_size 16M;
+        quic_active_connection_id_limit 2;
+        quic_gso on;
+        quic_retry on;
 
-	ssl_early_data on; # Enable TLSv1.3's 0-RTT. Use $ssl_early_data when reverse proxying to prevent replay attacks - http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_early_data
-	ssl_dyn_rec_enable on; # https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency/
-	ssl_buffer_size 4k; # https://haydenjames.io/nginx-tuning-tips-tls-ssl-https-ttfb-latency/
+        keepalive_requests 50000;
+        large_client_header_buffers 4 16k;
+        proxy_buffers 32 4k;
+        proxy_headers_hash_bucket_size 128;
+        proxy_headers_hash_max_size 1024;
+        send_timeout 100m; # Some players don't reopen a socket and playback stops totally instead of resuming after an extended pause (e.g. Chrome)
 
-	# fetch OCSP records from URL in ssl_certificate and cache them
-	resolver 127.0.0.1 9.9.9.9 149.112.112.112 ipv6=off valid=60s;
-	resolver_timeout 5s;
-	ssl_stapling on;
-	ssl_stapling_verify on;
+        ssl_early_data on; # Enable TLSv1.3's 0-RTT. Use $ssl_early_data when reverse proxying to prevent replay attacks - http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_early_data
+        ssl_dyn_rec_enable on; # https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency/
+        ssl_buffer_size 4k; # https://haydenjames.io/nginx-tuning-tips-tls-ssl-https-ttfb-latency/
 
-	# https://support.cloudflare.com/hc/en-us/categories/200276247-SSL-TLS
-	ssl_certificate /etc/nginx/ssl/domain.tld/cert.pem;
-	ssl_certificate_key /etc/nginx/ssl/domain.tld/key.pem;
-	ssl_client_certificate /etc/nginx/ssl/domain.tld/cf.pem;
-	ssl_trusted_certificate /etc/nginx/ssl/domain.tld/cf-ca-root.pem;
-	ssl_dhparam /etc/nginx/ssl/dhparam.pem; # Generate: dhparam -out /etc/nginx/ssl/dhparam.pem 4096
-	ssl_verify_client on;
+        # fetch OCSP records from URL in ssl_certificate and cache them
+        resolver 127.0.0.1 9.9.9.9 149.112.112.112 ipv6=off valid=60s;
+        resolver_timeout 5s;
+        ssl_stapling on;
+        ssl_stapling_verify on;
 
-	# https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls/
-	ssl_protocols TLSv1.3;
-	ssl_conf_command Options KTLS;
-	ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384; # KTLS compatible TLSv1.3 cipher
-	ssl_conf_command Ciphersuites TLS_AES_256_GCM_SHA384; # KTLS compatible TLSv1.3 cipher
-	ssl_ecdh_curve secp384r1;
-	ssl_prefer_server_ciphers on;
+        # ssl certificate from letsencrypt
+        ssl_certificate /etc/letsencrypt/live/cdn.plex.domain.tld/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/cdn.plex.domain.tld/privkey.pem;
 
-	# Restrict methods
-	if ($request_method !~ ^(GET|POST|PUT|HEAD|CONNECT|DELETE|OPTIONS)$) {
-		return '405';
-	}
+        # https://www.nginx.com/blog/improving-nginx-performance-with-kernel-tls/
+        ssl_protocols TLSv1.3;
+        ssl_conf_command Options KTLS;
+        ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384; # KTLS compatible TLSv1.3 cipher
+        ssl_conf_command Ciphersuites TLS_AES_256_GCM_SHA384; # KTLS compatible TLSv1.3 cipher
+        ssl_ecdh_curve secp384r1;
+        ssl_prefer_server_ciphers on;
 
-	# Nginx default client_max_body_size is 1MB, which breaks Camera Upload feature from the phones
-	# Increasing the limit fixes the issue. Anyhow, if 4K videos are expected to be uploaded, the size might need to be increased even more
-	client_max_body_size 512M;
+        # Restrict methods
+        if ($request_method !~ ^(GET|POST|PUT|HEAD|CONNECT|DELETE|OPTIONS)$) {
+                return '405';
+        }
 
-	# Compression
-	gzip on;
-	gzip_proxied any;
-	gzip_comp_level 6;
-	gzip_min_length 20;
-	gzip_http_version 1.1;
-	# https://support.cloudflare.com/hc/en-us/articles/200168396-What-will-Cloudflare-compress-
-	gzip_types application/atom+xml application/geo+json application/javascript application/json application/ld+json application/manifest+json application/rdf+xml application/rss+xml application/vnd.ms-fontobject application/wasm application/x-perl application/x-web-app-manifest+json application/xhtml+xml application/xml application/xspf+xml audio/midi font/otf image/bmp image/svg+xml text/cache-manifest text/calendar text/css text/javascript text/markdown text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy text/xml;
+        # Nginx default client_max_body_size is 1MB, which breaks Camera Upload feature from the phones
+        # Increasing the limit fixes the issue. Anyhow, if 4K videos are expected to be uploaded, the size might need to be increased even more
+        client_max_body_size 512M;
 
-	# HTTP3/QUIC
-	add_header Alt-Svc 'h3=":443"; ma=86400'; # Advertise that QUIC is available
-	add_header X-Early-Data $tls1_3_early_data; # 0-RTT
+        # Compression
+        gzip on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_min_length 20;
+        gzip_http_version 1.1;
+        # https://support.cloudflare.com/hc/en-us/articles/200168396-What-will-Cloudflare-compress-
+        gzip_types application/atom+xml application/geo+json application/javascript application/json application/ld+json application/manifest+json application/rdf+xml application/rss+xml application/vnd.ms-fontobject application/wasm application/x-perl application/x-web-app-manifest+json application/xhtml+xml application/xml application/xspf+xml audio/midi font/otf image/bmp image/svg+xml text/cache-manifest text/calendar text/css text/javascript text/markdown text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy text/xml;
 
-	# Generated via: https://forums.plex.tv/t/guide-howto-reverse-proxy-header-hardening-csp-security-headers/676189
-	set $script_hashes "'sha256-jeftGV7LmTJr5Kd2dJKcMDmTwNuXMyL6wKQaB39fF+U=' 'sha256-pKO/nNgeauDINvYfxdygP3mGssdVQRpRNxaF7uPRoGM=' 'sha256-yzewNIK88H9e/nnbvcRDaRitv6LXSahLCAXIFAjaetU='";
-	set $style_hashes "'sha256-ZdHxw9eWtnxUb3mk6tBS+gIiVUPE3pGM470keHPDFlE='";
+        # HTTP3/QUIC
+        add_header Alt-Svc 'h3=":443"; ma=86400'; # Advertise that QUIC is available
+        add_header X-Early-Data $tls1_3_early_data; # 0-RTT
 
-	# https://github.com/GetPageSpeed/ngx_security_headers
-	# https://securityheaders.com & https://csp-evaluator.withgoogle.com
-	add_header Referrer-Policy "same-origin" always;
-	add_header Strict-Transport-Security "max-age=63072000; includesubdomains; preload" always;
-	add_header X-Content-Type-Options "nosniff" always;
-	add_header X-Frame-Options sameorigin;
-	add_header X-XSS-Protection "1; mode=block" always;
-	add_header Content-Security-Policy "base-uri 'self';block-all-mixed-content;connect-src 'self' https://*.plex.direct:32400 https://*.plex.tv https://plex.tv wss://*.plex.tv wss://*.plex.direct:32400;default-src 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';frame-src 'self';img-src 'self' blob: data: https://*.plex.tv;manifest-src 'self';media-src 'self' blob: data:;object-src 'none';prefetch-src 'self';script-src 'self' 'report-sample' 'unsafe-eval' $script_hashes;style-src 'self' 'report-sample' 'unsafe-hashes' $style_hashes;upgrade-insecure-requests;worker-src 'none';" always;
-	add_header Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=*, geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()" always;
-	add_header Cross-Origin-Embedder-Policy require-corp;
-	add_header Cross-Origin-Embedder-Policy-Report-Only require-corp;
-	add_header Cross-Origin-Opener-Policy same-origin;
-	add_header Cross-Origin-Opener-Policy-Report-Only same-origin;
-	add_header Cross-Origin-Resource-Policy same-site;
-	add_header X-Robots-Tag "noindex, noarchive, nosnippet";
+        # Generated via: https://forums.plex.tv/t/guide-howto-reverse-proxy-header-hardening-csp-security-headers/676189
+        set $script_hashes "'sha256-jeftGV7LmTJr5Kd2dJKcMDmTwNuXMyL6wKQaB39fF+U=' 'sha256-pKO/nNgeauDINvYfxdygP3mGssdVQRpRNxaF7uPRoGM=' 'sha256-yzewNIK88H9e/nnbvcRDaRitv6LXSahLCAXIFAjaetU='";
+        set $style_hashes "'sha256-ZdHxw9eWtnxUb3mk6tBS+gIiVUPE3pGM470keHPDFlE='";
 
-	proxy_pass_request_headers on;
+        # https://github.com/GetPageSpeed/ngx_security_headers
+        # https://securityheaders.com & https://csp-evaluator.withgoogle.com
+        add_header Referrer-Policy "same-origin" always;
+        add_header Strict-Transport-Security "max-age=63072000; includesubdomains; preload" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options sameorigin;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Content-Security-Policy "base-uri 'self';block-all-mixed-content;connect-src 'self' https://*.plex.direct:32400 https://*.plex.tv https://plex.tv wss://*.plex.tv wss://*.plex.direct:32400;default-src 'none';font-src 'self' data:;form-action 'self';frame-ancestors 'none';frame-src 'self';img-src 'self' blob: data: https://*.plex.tv;manifest-src 'self';media-src 'self' blob: data:;object-src 'none';prefetch-src 'self';script-src 'self' 'report-sample' 'unsafe-eval' $script_hashes;style-src 'self' 'report-sample' 'unsafe-hashes' $style_hashes;upgrade-insecure-requests;worker-src 'none';" always;
+        add_header Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=*, geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), window-placement=(), vertical-scroll=()" always;
+        add_header Cross-Origin-Embedder-Policy require-corp;
+        add_header Cross-Origin-Embedder-Policy-Report-Only require-corp;
+        add_header Cross-Origin-Opener-Policy same-origin;
+        add_header Cross-Origin-Opener-Policy-Report-Only same-origin;
+        add_header Cross-Origin-Resource-Policy same-site;
+        add_header X-Robots-Tag "noindex, noarchive, nosnippet";
 
-	proxy_set_header Host $host;
-	proxy_set_header X-Real-IP $remote_addr;
-	proxy_set_header X-Forwarded-For $http_x_forwarded_for,$realip_remote_addr;
-	proxy_set_header X-Forwarded-Proto $scheme;
-	proxy_set_header X-Forwarded-Ssl on;
+        proxy_pass_request_headers on;
 
-	# Headers required for PMS
-	proxy_set_header X-Plex-Client-Identifier $http_x_plex_client_identifier;
-	proxy_set_header X-Plex-Container-Size $http_x_plex_container_size;
-	proxy_set_header X-Plex-Container-Start $http_x_plex_container_start;
-	proxy_set_header X-Plex-Device $http_x_plex_device;
-	proxy_set_header X-Plex-Device-Name $http_x_plex_device_name;
-	proxy_set_header X-Plex-Platform $http_x_plex_platform;
-	proxy_set_header X-Plex-Platform-Version $http_x_plex_platform_version;
-	proxy_set_header X-Plex-Product $http_x_plex_product;
-	proxy_set_header X-Plex-Token $http_x_plex_token;
-	proxy_set_header X-Plex-Version $http_x_plex_version;
-	proxy_set_header X-Plex-Nocache $http_x_plex_nocache;
-	proxy_set_header X-Plex-Provides $http_x_plex_provides;
-	proxy_set_header X-Plex-Device-Vendor $http_x_plex_device_vendor;
-	proxy_set_header X-Plex-Model $http_x_plex_model;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for,$realip_remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Ssl on;
 
-	# Enable websockets
-	proxy_set_header Sec-WebSocket-Extensions $http_sec_websocket_extensions;
-	proxy_set_header Sec-WebSocket-Key $http_sec_websocket_key;
-	proxy_set_header Sec-WebSocket-Version $http_sec_websocket_version;
+        # Headers required for PMS
+        proxy_set_header X-Plex-Client-Identifier $http_x_plex_client_identifier;
+        proxy_set_header X-Plex-Container-Size $http_x_plex_container_size;
+        proxy_set_header X-Plex-Container-Start $http_x_plex_container_start;
+        proxy_set_header X-Plex-Device $http_x_plex_device;
+        proxy_set_header X-Plex-Device-Name $http_x_plex_device_name;
+        proxy_set_header X-Plex-Platform $http_x_plex_platform;
+        proxy_set_header X-Plex-Platform-Version $http_x_plex_platform_version;
+        proxy_set_header X-Plex-Product $http_x_plex_product;
+        proxy_set_header X-Plex-Token $http_x_plex_token;
+        proxy_set_header X-Plex-Version $http_x_plex_version;
+        proxy_set_header X-Plex-Nocache $http_x_plex_nocache;
+        proxy_set_header X-Plex-Provides $http_x_plex_provides;
+        proxy_set_header X-Plex-Device-Vendor $http_x_plex_device_vendor;
+        proxy_set_header X-Plex-Model $http_x_plex_model;
 
-	proxy_http_version 1.1;
-	proxy_set_header Upgrade $http_upgrade;
-	proxy_set_header Connection "Upgrade";
-	proxy_set_header Accept-Encoding "";
-	proxy_ssl_verify off;
-	proxy_read_timeout 86400;
-	proxy_redirect off;
+        # Enable websockets
+        proxy_set_header Sec-WebSocket-Extensions $http_sec_websocket_extensions;
+        proxy_set_header Sec-WebSocket-Key $http_sec_websocket_key;
+        proxy_set_header Sec-WebSocket-Version $http_sec_websocket_version;
 
-	# Disables compression between PMS and Nginx which improves latency. Enabling may improve throughput, but at the cost of increased latency.
-	proxy_buffering off;
-	proxy_request_buffering off;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Accept-Encoding "";
+        proxy_ssl_verify off;
+        proxy_read_timeout 86400;
+        proxy_redirect off;
 
-	# Reverse proxy to PMS
-	location / {
-		proxy_pass http://plex_backend;
-	}
+        # Disables compression between PMS and Nginx which improves latency. Enabling may improve throughput, but at the cost of increased latency.
+        proxy_buffering off;
+        proxy_request_buffering off;
 
-	# https://old.reddit.com/r/PleX/comments/12gwoio/plex_nginx_reverse_proxy_caching/
-	location /photo/:/transcode {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 7d;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache plex-images;
-		proxy_cache_background_update on;
-		proxy_cache_key "$arg_url$arg_width$arg_height";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 1d;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        # Reverse proxy to PMS
+        location / {
+                proxy_pass http://plex_backend;
+        }
 
-	location ~ /hubs/(home|promoted)$ {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 1h;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache_bypass $include_user_state;
-		proxy_cache_background_update on;
-		proxy_cache plex-metadata;
-		proxy_cache_key "meta-hubs$uri$x_plex_token$content_directory_id$pinned_content_directory_id";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 5m;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        # https://old.reddit.com/r/PleX/comments/12gwoio/plex_nginx_reverse_proxy_caching/
+        location /photo/:/transcode {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 7d;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache plex-images;
+                proxy_cache_background_update on;
+                proxy_cache_key "$arg_url$arg_width$arg_height";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 1d;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
 
-	location ~ /library/(metadata|collections)/[0-9]+/(children|related|similar|items)$ {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 1h;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache_bypass $include_user_state;
-		proxy_cache_background_update on;
-		proxy_cache plex-metadata;
-		proxy_cache_key "meta-related$uri$x_plex_token$content_directory_id";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 15m;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        location ~ /hubs/(home|promoted)$ {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 1h;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache_bypass $include_user_state;
+                proxy_cache_background_update on;
+                proxy_cache plex-metadata;
+                proxy_cache_key "meta-hubs$uri$x_plex_token$content_directory_id$pinned_content_directory_id";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 5m;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
 
-	location ~ /library/(metadata|collections)/[0-9]+/(extras|theme|thumb)$ {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 1w;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache_bypass $include_user_state;
-		proxy_cache_background_update on;
-		proxy_cache plex-metadata;
-		proxy_cache_key "meta-related$uri$x_plex_token$content_directory_id";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 1d;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        location ~ /library/(metadata|collections)/[0-9]+/(children|related|similar|items)$ {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 1h;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache_bypass $include_user_state;
+                proxy_cache_background_update on;
+                proxy_cache plex-metadata;
+                proxy_cache_key "meta-related$uri$x_plex_token$content_directory_id";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 15m;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
 
-	location ~ /library/sections/[0-9]+/(categories)$ {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 1d;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache_bypass $include_user_state;
-		proxy_cache_background_update on;
-		proxy_cache plex-metadata;
-		proxy_cache_key "meta-categories$uri$x_plex_token";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 1d;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        location ~ /library/(metadata|collections)/[0-9]+/(extras|theme|thumb)$ {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 1w;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache_bypass $include_user_state;
+                proxy_cache_background_update on;
+                proxy_cache plex-metadata;
+                proxy_cache_key "meta-related$uri$x_plex_token$content_directory_id";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 1d;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
 
-	location ~* \.(html|css|jpg|gif|ico|js)$ {
-		add_header X-Cache-Date $upstream_http_date;
-		add_header X-Cache-Status $upstream_cache_status;
-		expires 1d;
-		http2_push_preload on;
-		proxy_buffering on;
-		proxy_cache_background_update on;
-		proxy_cache plex-metadata;
-		proxy_cache_key "static$uri;";
-		proxy_cache_lock on;
-		proxy_cache_methods GET;
-		proxy_cache_min_uses 1;
-		proxy_cache_revalidate on;
-		proxy_cache_valid 200 301 302 1d;
-		proxy_cache_valid 404 1s;
-		proxy_ignore_headers Cache-Control;
-		proxy_pass http://plex_backend;
-		proxy_ssl_verify off;
-		sendfile on;
-	}
+        location ~ /library/sections/[0-9]+/(categories)$ {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 1d;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache_bypass $include_user_state;
+                proxy_cache_background_update on;
+                proxy_cache plex-metadata;
+                proxy_cache_key "meta-categories$uri$x_plex_token";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 1d;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
+
+        location ~* \.(html|css|jpg|gif|ico|js)$ {
+                add_header X-Cache-Date $upstream_http_date;
+                add_header X-Cache-Status $upstream_cache_status;
+                expires 1d;
+                http2_push_preload on;
+                proxy_buffering on;
+                proxy_cache_background_update on;
+                proxy_cache plex-metadata;
+                proxy_cache_key "static$uri;";
+                proxy_cache_lock on;
+                proxy_cache_methods GET;
+                proxy_cache_min_uses 1;
+                proxy_cache_revalidate on;
+                proxy_cache_valid 200 301 302 1d;
+                proxy_cache_valid 404 1s;
+                proxy_ignore_headers Cache-Control;
+                proxy_pass http://plex_backend;
+                proxy_ssl_verify off;
+                sendfile on;
+        }
 }
 
 # 0-RTT
 map $ssl_early_data $tls1_3_early_data {
-	"~." $ssl_early_data;
-	default "";
+        "~." $ssl_early_data;
+        default "";
 }
